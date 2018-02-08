@@ -39,6 +39,7 @@ using namespace std;
 #include <X11/Xlib.h>
 #include <X11/keysym.h>
 #include <GL/glx.h>
+#include "fonts.h"
 
 const int MAX_PARTICLES = 2000;
 const float GRAVITY = 0.1;
@@ -73,13 +74,13 @@ class Global {
 
 	    for(int i = 0 ; i < MAX_BOX; i++)
 	    {
-	    box[i].width = 90;
-	    box[i].height = 15;
-	    box[i].center.x = 100 + (i+1) * 65;
-	    box[i].center.y = 500 -(i+1) * 60;
+		box[i].width = 90;
+		box[i].height = 15;
+		box[i].center.x = 100 + (i+1) * 65;
+		box[i].center.y = 500 -(i+1) * 60;
 	    }
 	    n = 0;
-	    
+
 	}
 } g;
 
@@ -184,6 +185,9 @@ void init_opengl(void)
     glOrtho(0, g.xres, 0, g.yres, -1, 1);
     //Set the screen background color
     glClearColor(0.1, 0.1, 0.1, 1.0);
+    //allow font
+    glEnable(GL_TEXTURE_2D);
+    initialize_fonts();
 }
 
 void makeParticle(int x, int y)
@@ -192,15 +196,15 @@ void makeParticle(int x, int y)
 	return;
 
 
-	cout << "makeParticle() " << x << " " << y << endl;
-	//position of particle
-	Particle *p = &g.particle[g.n];
-	p->s.center.x = x;
-	p->s.center.y = y;
-	p->velocity.y = ((float)rand() / (float)RAND_MAX) * 1.0;
-	p->velocity.x =  ((float)rand() / (float)RAND_MAX) * 1.0 - 0.5;
-	++g.n;
-    
+    cout << "makeParticle() " << x << " " << y << endl;
+    //position of particle
+    Particle *p = &g.particle[g.n];
+    p->s.center.x = x;
+    p->s.center.y = y;
+    p->velocity.y = ((float)rand() / (float)RAND_MAX) * 1.0;
+    p->velocity.x =  ((float)rand() / (float)RAND_MAX) * 1.0;;
+    ++g.n;
+
 }
 
 void check_mouse(XEvent *e)
@@ -278,20 +282,23 @@ void movement()
 	p->s.center.y += p->velocity.y;
 	p->velocity.y -= GRAVITY;
 	//check for collision with shapes..
-	Shape *s = &g.box[i];
+	for (int j = 0; j < MAX_BOX; j++)
+	{
+	    Shape *s = &g.box[j];
 
-	if (p->s.center.y < s->center.y + s->height && 
-            p->s.center.y > s->center.y - s->height && 
-            p->s.center.x > s->center.x - s->width && 
-	    p->s.center.x < s->center.x + s->width)
-	{   
-	    p->velocity.y = -p->velocity.y;
-	    p->velocity.y *= 0.5;
+	    if (p->s.center.y < s->center.y + s->height && 
+		    p->s.center.y > s->center.y - s->height && 
+		    p->s.center.x > s->center.x - s->width && 
+		    p->s.center.x < s->center.x + s->width)
+	    {   
+		p->velocity.y = -p->velocity.y;
+		p->velocity.y *= 0.5;
+	    }
 	}
 
 	//check for off-screen
 	if (p->s.center.y < 0.0) {
-	  //  cout << "off screen" << endl;
+	    //  cout << "off screen" << endl;
 	    g.particle[i] = g.particle[--g.n];
 	}
     }
@@ -300,47 +307,63 @@ void movement()
 void render()
 {
     glClear(GL_COLOR_BUFFER_BIT);
+    Rect r;
     //Draw shapes...
     //
     //draw a box
-    Shape *s;
-    glColor3ub(90,140,90);
-    for(int i = 0; i < MAX_BOX; i++)
+    for (int i = 0; i < MAX_BOX; i++)
     {
-    	s = &g.box[i];
-   
-    glPushMatrix();
-    glTranslatef(s->center.x, s->center.y, s->center.z);
-    float w, h;
-    w = s->width;
-    h = s->height;
-    glBegin(GL_QUADS);
-    glVertex2i(-w, -h);
-    glVertex2i(-w,  h);
-    glVertex2i( w,  h);
-    glVertex2i( w, -h);
-    glEnd();
-    glPopMatrix();
-    //
-    //Draw the particle here
-    for(int i = 0; i <g.n; i++)
-    {
+	Shape *s;
+	glColor3ub(90,140,90);
+	s = &g.box[i];
+
 	glPushMatrix();
-	glColor3ub(150,160,220);
-	Vec *c = &g.particle[i].s.center;
-	w =
-	    h = 2;
+	glTranslatef(s->center.x, s->center.y, s->center.z);
+	float w, h;
+	w = s->width;
+	h = s->height;
 	glBegin(GL_QUADS);
-	glVertex2i(c->x-w, c->y-h);
-	glVertex2i(c->x-w, c->y+h);
-	glVertex2i(c->x+w, c->y+h);
-	glVertex2i(c->x+w, c->y-h);
+	glVertex2i(-w, -h);
+	glVertex2i(-w,  h);
+	glVertex2i( w,  h);
+	glVertex2i( w, -h);
 	glEnd();
 	glPopMatrix();
-    }
-    //
-    //Draw your 2D text here
+	//
+	//Draw the particle here
+	for(int i = 0; i <g.n; i++)
+	{
+	    glPushMatrix();
+	    glColor3ub(150,160,220);
+	    Vec *c = &g.particle[i].s.center;
+	    w =
+		h = 2;
+	    glBegin(GL_QUADS);
+	    glVertex2i(c->x-w, c->y-h);
+	    glVertex2i(c->x-w, c->y+h);
+	    glVertex2i(c->x+w, c->y+h);
+	    glVertex2i(c->x+w, c->y-h);
+	    glEnd();
+	    glPopMatrix();
+	}
+	//
+	//Draw your 2D text here
 
+	r.bot = g.yres - 170;
+	r.left = 165;
+	ggprint16(&r, 16, 0x00ffff00, "Requirements");
+	r.bot = g.yres - 230;
+	r.left = 230;
+	ggprint16(&r, 16, 0x00ffff00, "Design");
+	r.bot = g.yres - 290;
+	r.left = 295;
+	ggprint16(&r, 16, 0x00ffff00, "Code");
+	r.bot = g.yres - 350;
+	r.left = 360;
+	ggprint16(&r, 16, 0x00ffff00, "Testing");
+	r.bot = g.yres - 410;
+	r.left = 430;
+	ggprint16(&r, 16, 0x00ffff00, "Maintenance");
 
 
     }
