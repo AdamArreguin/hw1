@@ -52,7 +52,7 @@ struct Vec {
 
 struct Shape {
     float width, height;
-    float radius;
+    float radius, angle;
     Vec center;
 };
 
@@ -78,6 +78,7 @@ class Global {
 		box[i].height = 15;
 		box[i].center.x = 100 + (i+1) * 65;
 		box[i].center.y = 500 -(i+1) * 60;
+
 	    }
 	    n = 0;
 
@@ -293,6 +294,7 @@ void movement()
 	    {   
 		p->velocity.y = -p->velocity.y;
 		p->velocity.y *= 0.5;
+		//p->velocity.x *= 0.8;
 	    }
 	}
 
@@ -316,9 +318,10 @@ void render()
 	Shape *s;
 	glColor3ub(90,140,90);
 	s = &g.box[i];
-
+	s->angle = 0;
 	glPushMatrix();
 	glTranslatef(s->center.x, s->center.y, s->center.z);
+	glRotatef(s->angle, 100.0f, 1.0f, 1.0f);
 	float w, h;
 	w = s->width;
 	h = s->height;
@@ -349,19 +352,19 @@ void render()
 	//
 	//Draw your 2D text here
 
-	r.bot = g.yres - 170;
+	r.bot = g.yres - 172;
 	r.left = 165;
 	ggprint16(&r, 16, 0x00ffff00, "Requirements");
-	r.bot = g.yres - 230;
+	r.bot = g.yres - 232;
 	r.left = 230;
 	ggprint16(&r, 16, 0x00ffff00, "Design");
-	r.bot = g.yres - 290;
+	r.bot = g.yres - 292;
 	r.left = 295;
 	ggprint16(&r, 16, 0x00ffff00, "Code");
-	r.bot = g.yres - 350;
+	r.bot = g.yres - 352;
 	r.left = 360;
 	ggprint16(&r, 16, 0x00ffff00, "Testing");
-	r.bot = g.yres - 410;
+	r.bot = g.yres - 412;
 	r.left = 430;
 	ggprint16(&r, 16, 0x00ffff00, "Maintenance");
 
